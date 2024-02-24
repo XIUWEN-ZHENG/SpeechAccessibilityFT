@@ -1,0 +1,41 @@
+#!/bin/bash
+#SBATCH --job-name="w2v-ft"
+#SBATCH --output="logs/w2v-ft.%j.%N.out"
+#SBATCH --error="logs/w2v-ft.%j.%N.err"
+#SBATCH --partition=gpux1
+#SBATCH --time=24
+#SBATCH --mail-user=xiuwenz2@illinois.edu
+#SBATCH --mail-type=ALL
+#SBATCH --exclude=hal02,hal03,hal04,hal05,hal06,hal07,hal08
+
+module load opence
+source /home/xiuwenz2/.bashrc
+PYTHON_VIRTUAL_ENVIRONMENT=/home/xiuwenz2/.conda/envs/wav2vec
+conda activate ${PYTHON_VIRTUAL_ENVIRONMENT}
+
+task=fine-tune
+RELEASE=2023-10-05
+
+BASE_DIR=/home/xiuwenz2/SpeechAcc
+WORK_DIR=${BASE_DIR}/${task}
+MANIFEST_DIR=${WORK_DIR}/manifest/${RELEASE}
+
+ckpt_path=${BASE_DIR}/models/wav2vec_small.pt
+save_dir=${WORK_DIR}/outputs/wav2vec_base_1005
+
+mkdir -p ${WORK_DIR}/outputs
+mkdir -p ${save_dir}
+n_prev=$(ls -1q ${save_dir} | grep hydra_train.log | wc -l)
+echo "${n_prev} previous hydra_train.log"
+cp ${save_dir}/hydra_train.log ${save_dir}/hydra_train.log.${n_prev} || true
+
+srun --gres=gpu:1 --ntasks=1 fairseq-hydra-train \
+    checkpoint.save_dir=${save_dir} hydra.run.dir=${save_dir} \
+    +optimization.update_freq='[8]' \
+    +optimization.lr='[0.00001]' \
+    task.data=${MANIFEST_DIR} \
+    dataset.valid_subset=dev \
+    +skip_invalid_size_inputs_valid_test=True \
+    model.w2v_path=${ckpt_path} \
+    --config-dir ${WORK_DIR}/config \
+    --config-name base
