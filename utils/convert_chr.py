@@ -1,7 +1,7 @@
 #!/usr/bin/env python3 -u
 import argparse, os, re
 from tqdm import tqdm
-PUNC = r"['。─()-<>！？｡\"＂＃＄％＆＇（）＊＋，－-／/：；＜＝＞＠［＼］＾＿｀｛｜｝\[\]{～}｟｠｢｣､、〃《》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘’‛“”„‟…‧﹏.,:?~!]"
+PUNC = r"[。─()-<>！？｡\"＂＃＄％＆＇（）＊＋，－-／/：；＜＝＞＠［＼］＾＿｀｛｜｝\[\]{～}｟｠｢｣､、〃《》「」『』【】〔〕〖〗〘〙〚〛〜〝〞〟〰〾〿–—‘’‛“”„‟…‧﹏.,:?~!]"
 
 
 def main():
@@ -40,7 +40,14 @@ def main():
             content = re.findall("\((.*?)\)", l)
             if len(content) > 0:
                 l = re.sub("\((.*?)\)", lambda x: "("+re.sub("(.+(?=:))", " ", x.group()[1:-1])+")", l)
+            # process "...]"
+            content = re.findall("(.*?)\]", l)
+            if len(content) > 0:
+                l = re.sub("(.*?)\]", " ", l)
+            # remove punc
             l = re.sub(PUNC, " ", l)
+            # remove extra "'"
+            l = " ".join([con.strip("'") for con in l.split()])
             l = l.upper()
             s = ' '.join(l.strip().split()) # remove extra space
             s = ' '.join(s.replace(' ', space_char))
