@@ -26,7 +26,7 @@ def main(args):
         for item in fin:
             trans = item.strip()
             # remove "*", "~" before nemo_text_processing
-            trans = re.sub(r"[\*\~]", "", trans)
+            trans = re.sub(r"[\*\~]", " ", trans)
             trans = normalizer.normalize(trans, verbose=False, punct_post_process=True)
             print(trans, file=fout)
             
