@@ -8,7 +8,7 @@ Data pre-processing: Nemo text normalization, .origin.wrd to .wrd.
 """
 
 import argparse, os, re, joblib
-from nemo_text_processing.text_normalization.normalize import Normalizer
+# from nemo_text_processing.text_normalization.normalize import Normalizer
 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -21,10 +21,12 @@ def get_parser():
     return parser
 
 def main(args):
-    normalizer = Normalizer(input_case='cased', lang='en')
+#     normalizer = Normalizer(input_case='cased', lang='en')
     with open(os.path.join(args.manifest_dir, args.tag+".origin.wrd"), "r") as fin, open(os.path.join(args.manifest_dir, args.tag+".wrd"), "w") as fout:
         for item in fin:
             trans = item.strip()
+            # Rule - Remove "*", "~" before nemo_text_processing
+            trans = re.sub(r"[\*\~]", "", trans)
             trans = normalizer.normalize(trans, verbose=False, punct_post_process=True)
             print(trans, file=fout)
             
